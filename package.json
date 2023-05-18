@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/singak1/node-tutorial#readme",
   "dependencies": {
+    "express": "^4.18.2",
     "lodash": "^4.17.21"
   }
 }
