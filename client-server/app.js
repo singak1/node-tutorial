@@ -3,20 +3,25 @@ Using express to listen to get requests
 */
 const express = require('express');
 const morgan = require('morgan');   //third party middleware
+const mongoose = require('mongoose');
+const Blog = require('../models/blog');
 
 //express app
 const app = express();
+
+//connect to mongodb
+const dbURI = 'mongodb+srv://<username>:<password>@node-tutorial.ul2hjkk.mongodb.net/node-tutorial?retryWrites=true&w=majority';
+mongoose.connect(dbURI, {useNewUrlParser: true, useUnifiedTopology: true})
+    .then((result) => app.listen(3000))
+    .catch((err) => console.log(err));
 
 //register view engine
 app.set('view engine', 'ejs');
 //app.set('views', 'name-of-folder-containing-views'); DO THIS IF YOUR EJS FILES ARE NOT IN A FOLDER NAMED views
 
-//listen for request on port 3000
-app.listen(3000);
-
 //Middlware and Static Files
 //This makes all the files in the public foler accessible to the browser
-app.use(express.static('public'));
+app.use(express.static('../public'));
 
 /*Creating our own middleware to log request NOTE: next is needed to continue the request
 app.use((req, res, next) => {
@@ -30,24 +35,60 @@ app.use((req, res, next) => {
 //Using third party middleware
 app.use(morgan('tiny'));
 
+/*
+//Use blog model to add a blog to the db
+app.get('/add-blog', (req, res) => {
+    const blog = new Blog({
+        title: 'new blog',
+        snippet: 'about my new blog',
+        body: 'more about my new blog'
+    });
+    blog.save()
+        .then((result) =>{
+            res.send(result);
+        })
+        .catch((err) =>{
+            console.log(err);
+        });
+});
+
+//get all blogs from the db
+app.get('/all-blogs', (req, res) =>{
+    Blog.find()
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+});
+
+//get a single blog from the db
+app.get('/single-blog', (req, res) => {
+    Blog.findById('646be41f34ef1918ecdba453')
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+});
+*/
+
+//Routes
 //Listen for get requests to the root
 app.get('/', (req, res) => {
     //res.send('<p>Home page</p>');
     //Use sendFile to the user, we need to set the root as sendFile will look for the files at the root of our PC
     //res.sendFile('./views/index.html', {root: __dirname}); This is used when our files are static HTML Files
-    const blogs = [
-        {title: 'Michael Scott Worlds Best Boss', snippet: 'Michael Scott was gifted a mug with that engraded, BY HIMSELF'},
-        {title: 'XQC <3 Forsen', snippet: 'OMEGALUL DUUUUUD, You thought you were getting the lore'},
-        {title: 'Sanest Felix Qoute', snippet: 'xQc : "My nose is so big, you could use it as a math problem. How tall is my nose?'},
-    ];
-    res.render('index', {title: "Home", blogs: blogs});   //Passing title value to the EJS title to be used in index.ejs file
+    res.redirect('/blogs');   
 });
 
 //Listen for get requests to localhost:3000/about
 app.get('/about', (req, res) => {
     //res.send('<p>Home page</p>');
     //res.sendFile('./views/about.html', {root: __dirname});
-    res.render('about', {title: "About"});
+    res.render('about', {title: "About"}); //Passing title value to the EJS title to be used in index.ejs file
 });
 
 //redirects
@@ -55,6 +96,16 @@ app.get('/about-us', (req, res) => {
     res.redirect('/about');
 });
 
+//Blog Routes
+app.get('/blogs', (req, res) => {
+    Blog.find().sort({createdAt: -1})
+        .then((result) => {
+            res.render('index', {title: 'All Blogs', blogs: result});
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+});
 app.get('/blogs/create', (req, res) => {
     res.render('create', {title: "Create Blog"});
 });
