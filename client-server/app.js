@@ -2,6 +2,7 @@
 Using express to listen to get requests
 */
 const express = require('express');
+const morgan = require('morgan');   //third party middleware
 
 //express app
 const app = express();
@@ -12,6 +13,22 @@ app.set('view engine', 'ejs');
 
 //listen for request on port 3000
 app.listen(3000);
+
+//Middlware and Static Files
+//This makes all the files in the public foler accessible to the browser
+app.use(express.static('public'));
+
+/*Creating our own middleware to log request NOTE: next is needed to continue the request
+app.use((req, res, next) => {
+    console.log('\nnew request was made: ');
+    console.log('host: ', req.hostname);
+    console.log('path: ', req.path);
+    console.log('method: ', req.method);
+    next();
+});*/
+
+//Using third party middleware
+app.use(morgan('tiny'));
 
 //Listen for get requests to the root
 app.get('/', (req, res) => {
