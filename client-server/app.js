@@ -23,6 +23,7 @@ app.set('view engine', 'ejs');
 //This makes all the files in the public foler accessible to the browser
 app.use(express.static('../public'));
 
+app.use(express.urlencoded({extended: true}));
 /*Creating our own middleware to log request NOTE: next is needed to continue the request
 app.use((req, res, next) => {
     console.log('\nnew request was made: ');
@@ -106,6 +107,41 @@ app.get('/blogs', (req, res) => {
             console.log(err);
         })
 });
+
+app.post('/blogs', (req, res) => {
+    const blog = new Blog(req.body);
+
+    blog.save()
+        .then((result) => {
+            res.redirect('/blogs');
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+});
+
+app.get('/blog/:id', (req, res) => {
+    const id = req.params.id;
+    Blog.findById(id)
+        .then((result) => {
+            res.render('details', {blog: result, title: "Blog Details"});
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+})
+
+app.delete('/blogs/:id', (req, res) => {
+    const id = req.params.id;
+    Blog.findByIdAndDelete(id)
+        .then((result) => {
+            res.json({redirect: '/blogs'});
+        })
+        .catch(err => {
+            console.log(err);
+        })
+});
+
 app.get('/blogs/create', (req, res) => {
     res.render('create', {title: "Create Blog"});
 });
